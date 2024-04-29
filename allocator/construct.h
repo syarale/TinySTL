@@ -4,6 +4,8 @@
 #include <iterator>
 #include <type_traits>
 
+namespace sgi {
+
 template <typename T>
 inline void _construct(T* pointer) {
   new (static_cast<void*>(pointer)) T();
@@ -71,5 +73,7 @@ inline void destroy(char*, char*) {}
 #ifdef __STDC_ISO_10646__
 inline void destroy(wchar_t*, wchar_t*) {}
 #endif  // __STDC_ISO_10646__
+
+}  // namespace sgi
 
 #endif  // ALLOCATOR_CONSTRUCT_H_
