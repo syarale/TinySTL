@@ -1,6 +1,7 @@
 #include "uninitialized.h"
 
 #include <cstring>
+#include <memory>
 #include <type_traits>
 #include <vector>
 
@@ -31,24 +32,30 @@ class Temp {
 };
 
 TEST(Uninitialized, uninitialized_copy) {
-  std::vector<Foo> foo_vec(NUM, INIT_VALUE * 2);
-  std::vector<Foo> foo_res(NUM);
-  auto it1 =
-      sgi::uninitialized_copy(foo_vec.begin(), foo_vec.end(), foo_res.begin());
-  EXPECT_EQ(it1, foo_res.end());
-
-  for (int i = 0; i < foo_res.size(); i++) {
-    EXPECT_EQ(foo_res[i].value(), INIT_VALUE * 2);
+  std::vector<int> vec(NUM);
+  for (int i = 0; i < vec.size(); i++) {
+    vec[i] = i * INIT_VALUE;
   }
 
-  std::vector<Temp> temp_vec(NUM, INIT_VALUE * 2);
-  std::vector<Temp> temp_res(NUM);
-  auto it2 = sgi::uninitialized_copy(temp_vec.begin(), temp_vec.end(),
-                                     temp_res.begin());
-  EXPECT_EQ(it2, temp_res.end());
-  for (int i = 0; i < temp_res.size(); i++) {
-    EXPECT_EQ(temp_res[i].value(), INIT_VALUE * 2);
+  std::allocator<Foo> foo_alloc;
+  Foo* foo_res = foo_alloc.allocate(NUM);
+  auto foo_res_it = sgi::uninitialized_copy(vec.begin(), vec.end(), foo_res);
+
+  EXPECT_EQ(foo_res_it, foo_res + NUM);
+  for (int i = 0; i < NUM; i++) {
+    EXPECT_EQ((foo_res + i)->value(), i * INIT_VALUE);
   }
+
+  std::allocator<Temp> temp_alloc;
+  Temp* temp_res = temp_alloc.allocate(NUM);
+  auto temp_res_it = sgi::uninitialized_copy(vec.begin(), vec.end(), temp_res);
+  EXPECT_EQ(temp_res_it, temp_res + NUM);
+  for (int i = 0; i < NUM; i++) {
+    EXPECT_EQ((temp_res + i)->value(), i * INIT_VALUE);
+  }
+
+  foo_alloc.deallocate(foo_res, NUM);
+  temp_alloc.deallocate(temp_res, NUM);
 }
 
 TEST(Uninitialized, uninitialized_copy_char) {
@@ -59,33 +66,37 @@ TEST(Uninitialized, uninitialized_copy_char) {
 }
 
 TEST(Uninitialized, uninitialized_fill) {
-  std::vector<Foo> foo_vec(NUM, INIT_VALUE);
-  sgi::uninitialized_fill(foo_vec.begin(), foo_vec.end(), INIT_VALUE * 2);
-  for (int i = 0; i < foo_vec.size(); i++) {
-    EXPECT_EQ(foo_vec[i].value(), INIT_VALUE * 2);
+  std::allocator<Foo> foo_alloc;
+  Foo* foo_first = foo_alloc.allocate(NUM);
+  sgi::uninitialized_fill(foo_first, foo_first + NUM, INIT_VALUE);
+  for (int i = 0; i < NUM; i++) {
+    EXPECT_EQ((foo_first + i)->value(), INIT_VALUE);
   }
 
-  std::vector<Temp> temp_vec(NUM, INIT_VALUE);
-  sgi::uninitialized_fill(temp_vec.begin(), temp_vec.end(), INIT_VALUE * 2);
-  for (int i = 0; i < temp_vec.size(); i++) {
-    EXPECT_EQ(temp_vec[i].value(), INIT_VALUE * 2);
+  std::allocator<Temp> temp_alloc;
+  Temp* temp_first = temp_alloc.allocate(NUM);
+  sgi::uninitialized_fill(temp_first, temp_first + NUM, INIT_VALUE);
+  for (int i = 0; i < NUM; i++) {
+    EXPECT_EQ((temp_first + i)->value(), INIT_VALUE);
   }
+
+  foo_alloc.deallocate(foo_first, NUM);
+  temp_alloc.deallocate(temp_first, NUM);
 }
 
 TEST(Uninitialized, uninitialized_fill_n) {
-  std::vector<Foo> foo_vec(NUM, INIT_VALUE);
-  auto it1 = sgi::uninitialized_fill_n(foo_vec.begin(), NUM, INIT_VALUE * 2);
-  EXPECT_EQ(it1, foo_vec.end());
-  for (int i = 0; i < foo_vec.size(); i++) {
-    EXPECT_EQ(foo_vec[i].value(), INIT_VALUE * 2);
+  std::allocator<Foo> foo_alloc;
+  Foo* foo_first = foo_alloc.allocate(NUM);
+  auto foo_it = sgi::uninitialized_fill_n(foo_first, NUM, INIT_VALUE);
+  EXPECT_EQ(foo_it, foo_first + NUM);
+  for (int i = 0; i < NUM; i++) {
+    EXPECT_EQ((foo_first + i)->value(), INIT_VALUE);
   }
 
-  std::vector<Temp> temp_vec(NUM, INIT_VALUE);
-  auto it2 = sgi::uninitialized_fill_n(temp_vec.begin(), NUM, INIT_VALUE * 2);
-  EXPECT_EQ(it2, temp_vec.end());
-  for (int i = 0; i < temp_vec.size(); i++) {
-    EXPECT_EQ(temp_vec[i].value(), INIT_VALUE * 2);
-  }
+  std::allocator<Temp> temp_alloc;
+  Temp* temp_first = temp_alloc.allocate(NUM);
+  auto temp_it = sgi::uninitialized_fill_n(temp_first, NUM, INIT_VALUE);
+  EXPECT_EQ(temp_it, temp_first + NUM);
 }
 
 int main(int argc, char** argv) {

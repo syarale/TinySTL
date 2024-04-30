@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <iterator>
 
 #include "construct.h"
@@ -21,18 +20,23 @@ inline ForwardIter uninitialized_copy_aux(InputIter first, InputIter last,
 template <typename InputIter, typename ForwardIter>
 inline ForwardIter uninitialized_copy_aux(InputIter first, InputIter last,
                                           ForwardIter result, std::false_type) {
-  for (auto it = first; it != last; it++) {
-    sgi::construct(&*result, *first);
-    result++;
+  auto result_bk = result;
+  try {
+    for (auto it = first; it != last; it++) {
+      sgi::construct(&*result, *it);
+      result++;
+    }
+  } catch (...) {
+    sgi::destroy(result_bk, result);  // commit or rollback
+    result = result_bk;
   }
-
   return result;
 }
 
 template <typename InputIter, typename ForwardIter>
 inline ForwardIter uninitialized_copy(InputIter first, InputIter last,
                                       ForwardIter result) {
-  using type = typename std::iterator_traits<InputIter>::value_type;
+  using type = typename std::iterator_traits<ForwardIter>::value_type;
   uninitialized_copy_aux(first, last, result,
                          std::is_trivially_copyable<type>());
 }
@@ -56,50 +60,61 @@ inline ForwardIter uninitialized_copy_n(InputIter first, Size count,
                                         ForwardIter result) { /*TODO*/
 }
 
-template <typename InputIter, typename T>
-inline void uninitialized_fill_aux(InputIter first, InputIter last,
+template <typename ForwardIter, typename T>
+inline void uninitialized_fill_aux(ForwardIter first, ForwardIter last,
                                    const T& value, std::true_type) {
   // TODO(leisy): use sgi::fill instead of std::file
   std::fill(first, last, value);
 }
 
-template <typename InputIter, typename T>
-inline void uninitialized_fill_aux(InputIter first, InputIter last,
+template <typename ForwardIter, typename T>
+inline void uninitialized_fill_aux(ForwardIter first, ForwardIter last,
                                    const T& value, std::false_type) {
-  for (auto it = first; it != last; it++) {
-    sgi::construct(&*it, value);
+  auto first_bk = first;
+  try {
+    for (; first != last; first++) {
+      sgi::construct(&*first, value);
+    }
+  } catch (...) {
+    sgi::destroy(first_bk, first);  // commit or rollback
   }
 }
 
-template <typename InputIter, typename T>
-inline void uninitialized_fill(InputIter first, InputIter last,
+template <typename ForwardIter, typename T>
+inline void uninitialized_fill(ForwardIter first, ForwardIter last,
                                const T& value) {
-  using type = typename std::iterator_traits<InputIter>::value_type;
+  using type = typename std::iterator_traits<ForwardIter>::value_type;
   uninitialized_fill_aux(first, last, value,
                          std::is_trivially_copyable<type>());
 }
 
-template <typename InputIter, typename Size, typename T>
-inline InputIter uninitialized_fill_n_aux(InputIter first, Size count,
-                                          const T& value, std::true_type) {
+template <typename ForwardIter, typename Size, typename T>
+inline ForwardIter uninitialized_fill_n_aux(ForwardIter first, Size count,
+                                            const T& value, std::true_type) {
   // TODO(leisy): use sgi::fill_n instead of std::fill_n
   return std::fill_n(first, count, value);
 }
 
-template <typename InputIter, typename Size, typename T>
-inline InputIter uninitialized_fill_n_aux(InputIter first, Size count,
-                                          const T& value, std::false_type) {
-  for (; count > 0; count--) {
-    sgi::construct(&*first, value);
-    first++;
+template <typename ForwardIter, typename Size, typename T>
+inline ForwardIter uninitialized_fill_n_aux(ForwardIter first, Size count,
+                                            const T& value, std::false_type) {
+  auto first_bk = first;
+  try {
+    for (; count > 0; count--) {
+      sgi::construct(&*first, value);
+      first++;
+    }
+  } catch (...) {
+    sgi::destroy(first_bk, first);  // commit or rollback
+    first = first_bk;
   }
   return first;
 }
 
-template <typename InputIter, typename Size, typename T>
-inline InputIter uninitialized_fill_n(InputIter first, Size count,
-                                      const T& value) {
-  using type = typename std::iterator_traits<InputIter>::value_type;
+template <typename ForwardIter, typename Size, typename T>
+inline ForwardIter uninitialized_fill_n(ForwardIter first, Size count,
+                                        const T& value) {
+  using type = typename std::iterator_traits<ForwardIter>::value_type;
   return uninitialized_fill_n_aux(first, count, value,
                                   std::is_trivially_copyable<type>());
 }
