@@ -58,6 +58,36 @@ TEST(Uninitialized, uninitialized_copy_char) {
   EXPECT_EQ(strcmp(p1, p2), 0);
 }
 
+TEST(Uninitialized, uninitialized_fill) {
+  std::vector<Foo> foo_vec(NUM, INIT_VALUE);
+  sgi::uninitialized_fill(foo_vec.begin(), foo_vec.end(), INIT_VALUE * 2);
+  for (int i = 0; i < foo_vec.size(); i++) {
+    EXPECT_EQ(foo_vec[i].value(), INIT_VALUE * 2);
+  }
+
+  std::vector<Temp> temp_vec(NUM, INIT_VALUE);
+  sgi::uninitialized_fill(temp_vec.begin(), temp_vec.end(), INIT_VALUE * 2);
+  for (int i = 0; i < temp_vec.size(); i++) {
+    EXPECT_EQ(temp_vec[i].value(), INIT_VALUE * 2);
+  }
+}
+
+TEST(Uninitialized, uninitialized_fill_n) {
+  std::vector<Foo> foo_vec(NUM, INIT_VALUE);
+  auto it1 = sgi::uninitialized_fill_n(foo_vec.begin(), NUM, INIT_VALUE * 2);
+  EXPECT_EQ(it1, foo_vec.end());
+  for (int i = 0; i < foo_vec.size(); i++) {
+    EXPECT_EQ(foo_vec[i].value(), INIT_VALUE * 2);
+  }
+
+  std::vector<Temp> temp_vec(NUM, INIT_VALUE);
+  auto it2 = sgi::uninitialized_fill_n(temp_vec.begin(), NUM, INIT_VALUE * 2);
+  EXPECT_EQ(it2, temp_vec.end());
+  for (int i = 0; i < temp_vec.size(); i++) {
+    EXPECT_EQ(temp_vec[i].value(), INIT_VALUE * 2);
+  }
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

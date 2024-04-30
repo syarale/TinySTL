@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <iterator>
 
 #include "construct.h"
@@ -56,13 +57,51 @@ inline ForwardIter uninitialized_copy_n(InputIter first, Size count,
 }
 
 template <typename InputIter, typename T>
+inline void uninitialized_fill_aux(InputIter first, InputIter last,
+                                   const T& value, std::true_type) {
+  // TODO(leisy): use sgi::fill instead of std::file
+  std::fill(first, last, value);
+}
+
+template <typename InputIter, typename T>
+inline void uninitialized_fill_aux(InputIter first, InputIter last,
+                                   const T& value, std::false_type) {
+  for (auto it = first; it != last; it++) {
+    sgi::construct(&*it, value);
+  }
+}
+
+template <typename InputIter, typename T>
 inline void uninitialized_fill(InputIter first, InputIter last,
-                               const T& value) { /*TODO*/
+                               const T& value) {
+  using type = typename std::iterator_traits<InputIter>::value_type;
+  uninitialized_fill_aux(first, last, value,
+                         std::is_trivially_copyable<type>());
 }
 
 template <typename InputIter, typename Size, typename T>
-inline void uninitialized_fill_n(InputIter first, Size count,
-                                 const T& value) { /*TODO*/
+inline InputIter uninitialized_fill_n_aux(InputIter first, Size count,
+                                          const T& value, std::true_type) {
+  // TODO(leisy): use sgi::fill_n instead of std::fill_n
+  return std::fill_n(first, count, value);
+}
+
+template <typename InputIter, typename Size, typename T>
+inline InputIter uninitialized_fill_n_aux(InputIter first, Size count,
+                                          const T& value, std::false_type) {
+  for (; count > 0; count--) {
+    sgi::construct(&*first, value);
+    first++;
+  }
+  return first;
+}
+
+template <typename InputIter, typename Size, typename T>
+inline InputIter uninitialized_fill_n(InputIter first, Size count,
+                                      const T& value) {
+  using type = typename std::iterator_traits<InputIter>::value_type;
+  return uninitialized_fill_n_aux(first, count, value,
+                                  std::is_trivially_copyable<type>());
 }
 
 }  // namespace sgi
