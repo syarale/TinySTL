@@ -168,7 +168,51 @@ char* default_alloc::start_free = nullptr;
 char* default_alloc::end_free = nullptr;
 size_t default_alloc::extend_heap_size = 0;
 
-char* default_alloc::alloc_chunk(size_t bytes, int& nobjs) {}
+char* default_alloc::alloc_chunk(size_t bytes, int& nobjs) {
+  size_t total_bytes = bytes * nobjs;
+  size_t bytes_left = end_free - start_free;
+
+  char* res = start_free;
+  if (bytes_left >= total_bytes) {
+    start_free += total_bytes;
+    return res;
+  }
+
+  if (bytes_left >= bytes) {
+    nobjs = bytes_left / bytes;
+    total_bytes = nobjs * bytes;
+    start_free += total_bytes;
+    return res;
+  }
+
+  // memory pool expansion: add the remaining space to
+  // free_lists and then apply for memory
+  assert(bytes_left % ALIGN == 0);
+  int index = free_lists_index(bytes_left);
+  obj* curr = reinterpret_cast<obj*>(start_free);
+  curr->next_free_obj = free_lists[index];
+  free_lists[index] = curr;
+  start_free = end_free = nullptr;
+
+  size_t bytes_to_get = 2 * total_bytes + round_up(extend_heap_size >> 4);
+  start_free = static_cast<char*>(std::malloc(bytes_to_get));
+  if (start_free == nullptr) {
+    for (int i = bytes; i <= MAX_BYTES; i += ALIGN) {
+      int index = free_lists_index(i);
+      obj* ptr = free_lists[index];
+      if (ptr != nullptr) {
+        free_lists[index] = ptr->next_free_obj;
+        start_free = reinterpret_cast<char*>(ptr);
+        end_free = start_free + i;
+        return alloc_chunk(bytes, nobjs);
+      }
+    }
+    // Go to malloc's OOM handler
+    return static_cast<char*>(malloc_alloc::allocate(total_bytes));
+  }
+  end_free = start_free + bytes_to_get;
+  return alloc_chunk(bytes, nobjs);
+}
 
 char* default_alloc::refill(size_t bytes) {
   int nobjs = DEFAULT_CHUNKS;
