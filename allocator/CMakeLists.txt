@@ -16,3 +16,9 @@ target_link_libraries(uninitialized_test GTest::GTest GTest::Main)
 
 add_executable(alloc_test alloc_test.cc)
 target_link_libraries(alloc_test GTest::GTest GTest::Main)
+
+add_executable(malloc_alloc_test malloc_alloc_test.cc)
+target_link_libraries(malloc_alloc_test GTest::GTest GTest::Main)
+
+add_executable(default_alloc_test default_alloc_test.cc)
+target_link_libraries(default_alloc_test GTest::GTest GTest::Main)
