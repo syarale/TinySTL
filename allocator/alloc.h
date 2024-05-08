@@ -14,29 +14,29 @@ namespace sgi {
 
 // In fact, __USE_MALLOC_ALLOC macro is never defined in SGI-STL
 #ifdef __USE_MALLOC_ALLOC
-using alloc = malloc_alloc;
+using alloc = MallocAlloc;
 #else
-using alloc = default_alloc;
+using alloc = DefaultAlloc;
 #endif  //  __USE_MALLOC_ALLOC
 
 template <typename T, typename Alloc>
 class allocator {
  public:
   static T* allocate(size_t n) {
-    return n <= 0 ? nullptr : static_cast<T*>(Alloc::allocate(n * sizeof(T)));
+    return n <= 0 ? nullptr : static_cast<T*>(Alloc::Allocate(n * sizeof(T)));
   }
 
   static T* allocate(void) {
-    return static_cast<T*>(Alloc::allocate(sizeof(T)));
+    return static_cast<T*>(Alloc::Allocate(sizeof(T)));
   }
 
   static void deallocate(T* p, size_t n) {
     if (n != 0) {
-      Alloc::deallocate(p, n * sizeof(T));
+      Alloc::Deallocate(p, n * sizeof(T));
     }
   }
 
-  static void deallocate(T* p) { Alloc::deallocate(p, sizeof(T)); }
+  static void deallocate(T* p) { Alloc::Deallocate(p, sizeof(T)); }
 };
 
 }  // namespace sgi

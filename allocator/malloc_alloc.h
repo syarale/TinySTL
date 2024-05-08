@@ -11,51 +11,51 @@ namespace sgi {
 using size_t = std::size_t;
 
 // first level memory allocator
-class malloc_alloc {
+class MallocAlloc {
   using Func = void (*)();
 
  public:
-  static void* allocate(size_t n) {
+  static void* Allocate(size_t n) {
     void* ptr = malloc(n);
     if (ptr == NULL) {
-      ptr = oom_malloc(n);
+      ptr = OomMalloc(n);
     }
     return ptr;
   }
 
-  static void deallocate(void* p, size_t n) { std::free(p); }
+  static void Deallocate(void* p, size_t n) { std::free(p); }
 
-  static void* reallocate(void* p, size_t new_sz) {
+  static void* Reallocate(void* p, size_t new_sz) {
     void* ptr = realloc(p, new_sz);
     if (ptr == NULL) {
-      ptr = oom_realloc(p, new_sz);
+      ptr = OomRealloc(p, new_sz);
     }
     return ptr;
   }
 
-  static Func set_new_handler(Func func) {
-    Func old_handler = oom_handler;
-    oom_handler = func;
+  static Func SetNewHandler(Func func) {
+    Func old_handler = oom_handler_;
+    oom_handler_ = func;
     return (old_handler);
   }
 
  private:
-  static void* oom_malloc(size_t n);
-  static void* oom_realloc(void* p, size_t n);
-  static void (*oom_handler)();
+  static void* OomMalloc(size_t n);
+  static void* OomRealloc(void* p, size_t n);
+  static void (*oom_handler_)();
 };
 
-void (*malloc_alloc::oom_handler)() = nullptr;
+void (*MallocAlloc::oom_handler_)() = nullptr;
 
-void* malloc_alloc::oom_malloc(size_t n) {
+void* MallocAlloc::OomMalloc(size_t n) {
   void* res = NULL;
   for (;;) {
-    if (oom_handler == NULL) {
+    if (oom_handler_ == NULL) {
       throw std::bad_alloc();
       exit(1);
     }
 
-    (*oom_handler)();
+    (*oom_handler_)();
     res = std::malloc(n);
     if (res != NULL) {
       return res;
@@ -63,15 +63,15 @@ void* malloc_alloc::oom_malloc(size_t n) {
   }
 }
 
-void* malloc_alloc::oom_realloc(void* p, size_t n) {
+void* MallocAlloc::OomRealloc(void* p, size_t n) {
   void* res = NULL;
   for (;;) {
-    if (oom_handler == NULL) {
+    if (oom_handler_ == NULL) {
       throw std::bad_alloc();
       exit(1);
     }
 
-    (*oom_handler)();
+    (*oom_handler_)();
     res = std::realloc(p, n);
     if (res != NULL) {
       return res;

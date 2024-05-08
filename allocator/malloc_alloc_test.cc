@@ -15,7 +15,7 @@ class Foo {
 };
 
 TEST(MallocAlloc, malloc_alloc) {
-  sgi::allocator<Foo, sgi::malloc_alloc> alloc;
+  sgi::allocator<Foo, sgi::MallocAlloc> alloc;
   Foo* p = alloc.allocate(NUM);
   EXPECT_NE(p, nullptr);
   for (int i = 0; i < NUM; i++) {
