@@ -1,10 +1,10 @@
 #include "uninitialized.h"
 
 #include <cstring>
-#include <memory>
 #include <type_traits>
 #include <vector>
 
+#include "alloc.h"
 #include "gtest/gtest.h"
 
 constexpr int INIT_VALUE = 100;
@@ -37,7 +37,7 @@ TEST(Uninitialized, uninitialized_copy) {
     vec[i] = i * INIT_VALUE;
   }
 
-  std::allocator<Foo> foo_alloc;
+  sgi::allocator<Foo> foo_alloc;
   Foo* foo_res = foo_alloc.allocate(NUM);
   auto foo_res_it = sgi::uninitialized_copy(vec.begin(), vec.end(), foo_res);
 
@@ -46,7 +46,7 @@ TEST(Uninitialized, uninitialized_copy) {
     EXPECT_EQ((foo_res + i)->value(), i * INIT_VALUE);
   }
 
-  std::allocator<Temp> temp_alloc;
+  sgi::allocator<Temp> temp_alloc;
   Temp* temp_res = temp_alloc.allocate(NUM);
   auto temp_res_it = sgi::uninitialized_copy(vec.begin(), vec.end(), temp_res);
   EXPECT_EQ(temp_res_it, temp_res + NUM);
@@ -66,14 +66,14 @@ TEST(Uninitialized, uninitialized_copy_char) {
 }
 
 TEST(Uninitialized, uninitialized_fill) {
-  std::allocator<Foo> foo_alloc;
+  sgi::allocator<Foo> foo_alloc;
   Foo* foo_first = foo_alloc.allocate(NUM);
   sgi::uninitialized_fill(foo_first, foo_first + NUM, INIT_VALUE);
   for (int i = 0; i < NUM; i++) {
     EXPECT_EQ((foo_first + i)->value(), INIT_VALUE);
   }
 
-  std::allocator<Temp> temp_alloc;
+  sgi::allocator<Temp> temp_alloc;
   Temp* temp_first = temp_alloc.allocate(NUM);
   sgi::uninitialized_fill(temp_first, temp_first + NUM, INIT_VALUE);
   for (int i = 0; i < NUM; i++) {
@@ -85,7 +85,7 @@ TEST(Uninitialized, uninitialized_fill) {
 }
 
 TEST(Uninitialized, uninitialized_fill_n) {
-  std::allocator<Foo> foo_alloc;
+  sgi::allocator<Foo> foo_alloc;
   Foo* foo_first = foo_alloc.allocate(NUM);
   auto foo_it = sgi::uninitialized_fill_n(foo_first, NUM, INIT_VALUE);
   EXPECT_EQ(foo_it, foo_first + NUM);
@@ -93,7 +93,7 @@ TEST(Uninitialized, uninitialized_fill_n) {
     EXPECT_EQ((foo_first + i)->value(), INIT_VALUE);
   }
 
-  std::allocator<Temp> temp_alloc;
+  sgi::allocator<Temp> temp_alloc;
   Temp* temp_first = temp_alloc.allocate(NUM);
   auto temp_it = sgi::uninitialized_fill_n(temp_first, NUM, INIT_VALUE);
   EXPECT_EQ(temp_it, temp_first + NUM);

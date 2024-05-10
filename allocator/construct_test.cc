@@ -1,7 +1,6 @@
 #include "construct.h"
 
-#include <memory>
-
+#include "alloc.h"
 #include "gtest/gtest.h"
 
 constexpr int INIT_VALUE = 10;
@@ -33,7 +32,7 @@ class Temp {
 int Temp::count = 100;
 
 TEST(Construct, construct) {
-  std::allocator<Foo> alloc;
+  sgi::allocator<Foo> alloc;
   Foo* ptr = alloc.allocate(2);
 
   sgi::construct(ptr);
@@ -45,7 +44,7 @@ TEST(Construct, construct) {
 }
 
 TEST(Construct, destroy) {
-  std::allocator<Foo> foo_alloc;
+  sgi::allocator<Foo> foo_alloc;
   Foo* foo_ptr = foo_alloc.allocate(10);
   Foo* foo = foo_ptr;
   for (int i = 0; i < 10; i++) {
@@ -56,7 +55,7 @@ TEST(Construct, destroy) {
   sgi::destroy(foo_ptr, foo_ptr + 9);
   EXPECT_EQ(Foo::count, 100);
 
-  std::allocator<Temp> temp_alloc;
+  sgi::allocator<Temp> temp_alloc;
   Temp* temp_ptr = temp_alloc.allocate(10);
   Temp* temp = temp_ptr;
   for (int i = 0; i < 10; i++) {
