@@ -103,6 +103,47 @@ TEST(DefaultAlloc, Refill) {
 
 #endif
 
+TEST(DefaultAlloc, Allocate_Deallocate) {
+  char* ptr1 = static_cast<char*>(alloc::Allocate(160));
+  char* ptr2 = static_cast<char*>(alloc::Allocate(89));
+  char* ptr3 = static_cast<char*>(alloc::Allocate(1));
+
+  EXPECT_NE(ptr1, nullptr);
+  EXPECT_NE(ptr2, nullptr);
+  EXPECT_NE(ptr3, nullptr);
+
+  alloc::Deallocate(ptr1, 160);
+  alloc::Deallocate(ptr2, 89);
+  alloc::Deallocate(ptr3, 1);
+}
+
+TEST(DefaultAlloc, Reallocate) {
+  char* ptr1 = static_cast<char*>(alloc::Allocate(160));
+  EXPECT_NE(ptr1, nullptr);
+  char* ptr1_new = static_cast<char*>(alloc::Reallocate(ptr1, 160, 180));
+  EXPECT_NE(ptr1_new, nullptr);
+
+  char* ptr2 = static_cast<char*>(alloc::Allocate(110));
+  EXPECT_NE(ptr2, nullptr);
+  char* ptr2_new = static_cast<char*>(alloc::Reallocate(ptr2, 110, 130));
+  EXPECT_NE(ptr2_new, nullptr);
+
+  char* ptr3 = static_cast<char*>(alloc::Allocate(79));
+  EXPECT_NE(ptr3, nullptr);
+  char* ptr3_new = static_cast<char*>(alloc::Reallocate(ptr2, 79, 90));
+  EXPECT_NE(ptr3_new, nullptr);
+
+  char* ptr4 = static_cast<char*>(alloc::Allocate(56));
+  EXPECT_NE(ptr4, nullptr);
+  char* ptr4_new = static_cast<char*>(alloc::Reallocate(ptr2, 56, 30));
+  EXPECT_NE(ptr4_new, nullptr);
+
+  alloc::Deallocate(ptr1_new, 180);
+  alloc::Deallocate(ptr2_new, 130);
+  alloc::Deallocate(ptr3_new, 90);
+  alloc::Deallocate(ptr4_new, 30);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
