@@ -119,11 +119,13 @@ char* DefaultAlloc::AllocChunk(size_t bytes, int& nobjs) {
   // memory pool expansion: add the remaining space to
   // free_lists_ and then apply for memory
   assert(bytes_left % ALIGN == 0);
-  int index = FreeListsIndex(bytes_left);
-  obj* curr = reinterpret_cast<obj*>(start_free_);
-  curr->next_free_obj = free_lists_[index];
-  free_lists_[index] = curr;
-  start_free_ = end_free_ = nullptr;
+  if (bytes_left != 0) {
+    int index = FreeListsIndex(bytes_left);
+    obj* curr = reinterpret_cast<obj*>(start_free_);
+    curr->next_free_obj = free_lists_[index];
+    free_lists_[index] = curr;
+    start_free_ = end_free_ = nullptr;
+  }
 
   size_t bytes_to_get = 2 * total_bytes + RoundUp(extend_heap_size_ >> 4);
   start_free_ = static_cast<char*>(std::malloc(bytes_to_get));
@@ -142,6 +144,7 @@ char* DefaultAlloc::AllocChunk(size_t bytes, int& nobjs) {
     return static_cast<char*>(MallocAlloc::Allocate(total_bytes));
   }
   end_free_ = start_free_ + bytes_to_get;
+  extend_heap_size_ += bytes_to_get;
   return AllocChunk(bytes, nobjs);
 }
 
