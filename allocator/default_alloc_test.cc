@@ -2,14 +2,28 @@
 
 #include "gtest/gtest.h"
 
+using alloc = sgi::DefaultAlloc;
+
 #define SIKP_PRIVATE_MEMBER_CASE 0
 
 #ifndef SIKP_PRIVATE_MEMBER_CASE
+// In order to test private member functions, you need to temporarily
+// annotate the corresponding private keyword and also annotate the
+// SIKP_PRIVATE_MEMBER_CASE macro.
+
+int Count(void* head) {
+  alloc::obj* ptr = static_cast<alloc::obj*>(head);
+  int count = 0;
+  while (ptr != nullptr) {
+    count++;
+    ptr = ptr->next_free_obj;
+  }
+  return count;
+}
+
 TEST(DefaultAlloc, RoundUp) {
   // Before running this test case, RoundUp should be temporarily
   // modified to a public attribute
-
-  using alloc = sgi::DefaultAlloc;
   EXPECT_EQ(alloc::RoundUp(128), 128);
   EXPECT_EQ(alloc::RoundUp(110), 112);
   EXPECT_EQ(alloc::RoundUp(90), 96);
@@ -22,7 +36,6 @@ TEST(DefaultAlloc, RoundUp) {
 TEST(DefaultAlloc, FreeListsIndex) {
   // Before running this test case, FreeListsIndex should be temporarily
   // modified to a public attribute
-  using alloc = sgi::DefaultAlloc;
   EXPECT_EQ(alloc::FreeListsIndex(128), 15);
   EXPECT_EQ(alloc::FreeListsIndex(120), 14);
   EXPECT_EQ(alloc::FreeListsIndex(88), 10);
@@ -32,7 +45,6 @@ TEST(DefaultAlloc, FreeListsIndex) {
 }
 
 TEST(DefaultAlloc, AllocChunk) {
-  using alloc = sgi::DefaultAlloc;
   int nobjs = 1;
   char* ptr1 = alloc::AllocChunk(8, nobjs);
   EXPECT_NE(ptr1, nullptr);
@@ -74,6 +86,19 @@ TEST(DefaultAlloc, AllocChunk) {
   size_t bytes = 100000000000;
   nobjs = 2;
   EXPECT_THROW(alloc::AllocChunk(bytes, nobjs), std::bad_alloc);
+}
+
+TEST(DefaultAlloc, Refill) {
+  int bytes = 16;
+  char* ptr1 = alloc::Refill(bytes);
+  EXPECT_NE(ptr1, nullptr);
+  int index = alloc::FreeListsIndex(bytes);
+  EXPECT_NE(alloc::free_lists_[index], nullptr);
+  EXPECT_EQ(Count(alloc::free_lists_[index]), sgi::DEFAULT_CHUNKS - 1);
+
+  char* ptr2 = alloc::Refill(2 * bytes);
+  EXPECT_NE(ptr2, nullptr);
+  EXPECT_EQ(Count(alloc::free_lists_[index]), sgi::DEFAULT_CHUNKS - 1);
 }
 
 #endif
