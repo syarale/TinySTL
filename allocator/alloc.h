@@ -19,7 +19,7 @@ using alloc = MallocAlloc;
 using alloc = DefaultAlloc;
 #endif  //  __USE_MALLOC_ALLOC
 
-template <typename T, typename Alloc>
+template <typename T, typename Alloc = alloc>
 class allocator {
  public:
   static T* allocate(size_t n) {
