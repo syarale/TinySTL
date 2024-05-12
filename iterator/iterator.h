@@ -65,9 +65,8 @@ inline typename iterator_traits<Iterator>::difference_type* difference_type(
 
 template <typename Iterator>
 inline iterator_traits<Iterator> iterator_category(const Iterator&) {
-  typedef
-      typename iterator_traits<Iterator>::iterator_category iterator_category;
-  return iterator_category();
+  typedef typename iterator_traits<Iterator>::iterator_category category;
+  return category();
 }
 
 template <typename InputIterator>
@@ -117,7 +116,9 @@ inline void advance_aux(BidirectionalIterator& begin, Distance n,
 
 template <typename RandomAccessIterator, typename Distance>
 inline void advance_aux(RandomAccessIterator& begin, Distance n,
-                        random_access_iterator_tag) {}
+                        random_access_iterator_tag) {
+  begin += n;
+}
 
 template <typename InputIterator, typename Distance>
 inline void advance(InputIterator& begin, Distance n) {
