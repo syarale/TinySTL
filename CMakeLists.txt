@@ -6,3 +6,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(allocator)
 add_subdirectory(iterator)
+add_subdirectory(vector)
