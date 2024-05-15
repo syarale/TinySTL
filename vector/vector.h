@@ -2,6 +2,7 @@
 #define VECTOR_VECTOR_H_
 
 #include "alloc.h"
+#include "exception.h"
 
 template <typename T, typename Alloc = sgi::alloc>
 class vector {
@@ -15,7 +16,17 @@ class vector {
 
   vector() = default;
   vector(size_type n, const T& value) {}
-  explicit vector(size_type n) {}
+  explicit vector(size_type n) {
+    if (n < 0) {
+      throw sgi::invalid_alloc("argument is invalid");
+    }
+
+    if (n == 0) {
+      /*TODO(leisy)*/
+    } else {
+      /*TODO(leisy)*/
+    }
+  }
 
   ~vector() = default;
 
@@ -42,9 +53,9 @@ class vector {
 
  private:
   using data_allocator = sgi::allocator<value_type, Alloc>;
-  iterator start_;
-  iterator finish_;
-  iterator end_of_storage_;
+  iterator start_ = nullptr;
+  iterator finish_ = nullptr;
+  iterator end_of_storage_ = nullptr;
 };
 
 #endif  // VECTOR_VECTOR_H_
