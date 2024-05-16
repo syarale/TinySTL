@@ -2,7 +2,10 @@
 #define VECTOR_VECTOR_H_
 
 #include "alloc.h"
+#include "construct.h"
 #include "exception.h"
+
+namespace sgi {
 
 template <typename T, typename Alloc = sgi::alloc>
 class vector {
@@ -14,28 +17,21 @@ class vector {
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  vector() = default;
-  vector(size_type n, const T& value) {}
-  explicit vector(size_type n) {
-    if (n < 0) {
-      throw sgi::invalid_alloc("argument is invalid");
-    }
+  explicit vector() = default;
+  explicit vector(size_type n) : vector(n, T()){};
+  explicit vector(size_type n, const T& value);
+  ~vector();
 
-    if (n == 0) {
-      /*TODO(leisy)*/
-    } else {
-      /*TODO(leisy)*/
-    }
+  iterator begin() const { return start_; }
+  iterator end() const { return finish_; }
+  bool empty() const { return start_ == finish_; }
+
+  size_type size() const { return static_cast<size_type>(finish_ - start_); }
+  size_type capacity() const {
+    return static_cast<size_type>(end_of_storage_ - start_);
   }
 
-  ~vector() = default;
-
-  void begin() {}
-  void end() {}
-  void size() {}
-  void capacity() {}
-  void empty() {}
-  reference operator[](size_type n) {}
+  reference operator[](size_type n) { return *(start_ + n); }
 
   reference front() {}
   reference back() {}
@@ -57,5 +53,30 @@ class vector {
   iterator finish_ = nullptr;
   iterator end_of_storage_ = nullptr;
 };
+
+template <typename T, typename Alloc>
+inline vector<T, Alloc>::vector(size_type n, const T& value) {
+  if (n < 0) {
+    throw sgi::invalid_alloc("argument is invalid");
+  }
+
+  if (n > 0) {
+    size_type size = 2 * n;
+    start_ = static_cast<iterator>(data_allocator::allocate(size));
+    end_of_storage_ = start_ + size;
+    for (size_type i = 0; i < n; i++) {
+      sgi::construct(start_ + i, value);
+    }
+    finish_ = start_ + n;
+  }
+}
+
+template <typename T, typename Alloc>
+inline vector<T, Alloc>::~vector() {
+  sgi::destroy(start_, finish_);
+  data_allocator::deallocate(start_, end_of_storage_ - start_);
+}
+
+}  // namespace sgi
 
 #endif  // VECTOR_VECTOR_H_
