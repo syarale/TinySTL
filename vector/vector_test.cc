@@ -175,6 +175,32 @@ TEST(vector, clear) {
   EXPECT_EQ(vec.capacity(), 20);
 }
 
+TEST(vector, erase) {
+  sgi::vector<Foo> vec(10, {TEST_VALUE});
+  auto it1 = vec.erase(vec.end() - 1);
+  EXPECT_EQ(it1, vec.end());
+  EXPECT_EQ(vec.size(), 9);
+
+  auto it2 = vec.erase(vec.begin(), vec.begin() + 2);
+  EXPECT_EQ(it2, vec.begin());
+  EXPECT_EQ(vec.size(), 7);
+
+  auto it3 = vec.erase(vec.begin() + 2);
+  EXPECT_EQ(it3, vec.begin() + 2);
+  EXPECT_EQ(vec.size(), 6);
+
+  auto it4 = vec.erase(vec.begin() + 1, vec.begin() + 4);
+  EXPECT_EQ(it4, vec.begin() + 1);
+  EXPECT_EQ(vec.size(), 3);
+  for (auto it = vec.begin(); it != vec.end(); it++) {
+    EXPECT_EQ(it->value_, TEST_VALUE);
+  }
+
+  auto it5 = vec.erase(vec.begin(), vec.end());
+  EXPECT_EQ(it5, vec.end());
+  EXPECT_TRUE(vec.empty());
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

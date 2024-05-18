@@ -41,8 +41,8 @@ class vector {
 
   iterator insert(iterator position, const T& value);
   iterator insert(iterator position, size_type n, const T& value);
-  iterator erase(iterator position) {}
-  iterator erase(iterator first, iterator last) {}
+  iterator erase(iterator position) { return erase(position, position + 1); }
+  iterator erase(iterator first, iterator last);
   void resize(size_type n) {}
   void resize(size_type n, const T& value) {}
 
@@ -139,6 +139,15 @@ template <typename T, typename Alloc>
 inline void vector<T, Alloc>::clear() {
   sgi::destroy(start_, finish_);
   finish_ = start_;
+}
+
+template <typename T, typename Alloc>
+inline typename vector<T, Alloc>::iterator vector<T, Alloc>::erase(
+    iterator first, iterator last) {
+  sgi::destroy(first, last);
+  std::copy(last, finish_, first);  // TODO(leisy): use sgi::copy
+  finish_ -= static_cast<size_type>(last - first);
+  return first;
 }
 
 template <typename T, typename Alloc>
