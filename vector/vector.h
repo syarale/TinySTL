@@ -46,7 +46,7 @@ class vector {
   void resize(size_type n) {}
   void resize(size_type n, const T& value) {}
 
-  void clear() {}
+  void clear();
 
  private:
   using data_allocator = sgi::allocator<value_type, Alloc>;
@@ -136,6 +136,12 @@ inline typename vector<T, Alloc>::iterator vector<T, Alloc>::insert(
 }
 
 template <typename T, typename Alloc>
+inline void vector<T, Alloc>::clear() {
+  sgi::destroy(start_, finish_);
+  finish_ = start_;
+}
+
+template <typename T, typename Alloc>
 inline typename vector<T, Alloc>::iterator vector<T, Alloc>::insert_aux(
     iterator position, const T& value) {
   if (finish_ != end_of_storage_) {
@@ -166,6 +172,7 @@ template <typename T, typename Alloc>
 inline void vector<T, Alloc>::destroy_all() {
   sgi::destroy(start_, finish_);
   data_allocator::deallocate(start_, capacity());
+  start_ = finish_ = end_of_storage_ = nullptr;
 }
 
 }  // namespace sgi

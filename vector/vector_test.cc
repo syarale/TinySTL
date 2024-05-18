@@ -167,6 +167,14 @@ TEST(vector, insert_range) {
   }
 }
 
+TEST(vector, clear) {
+  sgi::vector<Foo> vec(10, {TEST_VALUE});
+  EXPECT_EQ(vec.size(), 10);
+  vec.clear();
+  EXPECT_TRUE(vec.empty());
+  EXPECT_EQ(vec.capacity(), 20);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
