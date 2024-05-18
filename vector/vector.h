@@ -39,8 +39,8 @@ class vector {
   void push_back(const T& value);
   void pop_back();
 
-  void insert(iterator position, const T& value) {}
-  void insert(iterator position, size_type n, const T& value) {}
+  iterator insert(iterator position, const T& value);
+  iterator insert(iterator position, size_type n, const T& value);
   iterator erase(iterator position) {}
   iterator erase(iterator first, iterator last) {}
   void resize(size_type n) {}
@@ -50,8 +50,9 @@ class vector {
 
  private:
   using data_allocator = sgi::allocator<value_type, Alloc>;
-  void expansion();
+
   void destroy_all();
+  iterator insert_aux(iterator position, const T& value);
 
   iterator start_ = nullptr;
   iterator finish_ = nullptr;
@@ -78,10 +79,11 @@ inline vector<T, Alloc>::vector(size_type n, const T& value) {
 template <typename T, typename Alloc>
 inline void vector<T, Alloc>::push_back(const T& value) {
   if (finish_ == end_of_storage_) {
-    expansion();
+    insert_aux(end(), value);
+  } else {
+    *finish_ = value;
+    ++finish_;
   }
-  *finish_ = value;
-  ++finish_;
 }
 
 // An error will result when pop_back is called on an empty vector.
@@ -93,21 +95,77 @@ inline void vector<T, Alloc>::pop_back() {
 }
 
 template <typename T, typename Alloc>
-inline void vector<T, Alloc>::expansion() {
+inline typename vector<T, Alloc>::iterator vector<T, Alloc>::insert(
+    iterator position, const T& value) {
+  return insert_aux(position, value);
+}
+
+template <typename T, typename Alloc>
+inline typename vector<T, Alloc>::iterator vector<T, Alloc>::insert(
+    iterator position, size_type n, const T& value) {
+  size_type remaining_size = static_cast<size_type>(end_of_storage_ - finish_);
+
+  // trigger expansion
+  if (remaining_size < n) {
+    size_type new_size = size() + std::max(size(), n);
+    iterator new_start_ =
+        static_cast<iterator>(data_allocator::allocate(new_size));
+
+    iterator pos = sgi::uninitialized_copy(start_, position, new_start_);
+    sgi::uninitialized_fill(pos, pos + n, value);
+    finish_ = sgi::uninitialized_copy(position, finish_, pos + n);
+    start_ = new_start_;
+    end_of_storage_ = start_ + new_size;
+    return pos;
+  }
+
+  // no expansion
+  size_type move_size = static_cast<size_type>(finish_ - position);
+  if (n >= move_size) {
+    sgi::uninitialized_copy(position, finish_, position + n);
+    uninitialized_fill(finish_, position + n, value);
+    std::fill(position, finish_, value);  // TODO(leisy): use sgi::fill
+  } else {
+    size_type left_size = move_size - n;
+    uninitialized_copy(position + left_size, finish_, finish_);
+    std::copy_backward(position, position + left_size, finish_);
+    std::fill(position, position + n, value);
+  }
+  finish_ += n;
+  return position;
+}
+
+template <typename T, typename Alloc>
+inline typename vector<T, Alloc>::iterator vector<T, Alloc>::insert_aux(
+    iterator position, const T& value) {
+  if (finish_ != end_of_storage_) {
+    // TODO(leisy): use sgi::copy_backward
+    std::copy_backward(position, finish_, finish_ + 1);
+    ++finish_;
+    *position = value;
+    return position;
+  }
+
+  // expansion
   size_type new_size = (size() == 0) ? 1 : 2 * size();
   iterator new_start_ =
       static_cast<iterator>(data_allocator::allocate(new_size));
-  iterator new_finish_ = sgi::uninitialized_copy(start_, finish_, new_start_);
+  iterator new_pos = sgi::uninitialized_copy(start_, position, new_start_);
+  *new_pos = value;
+  iterator new_finish = sgi::uninitialized_copy(position, finish_, new_pos + 1);
+
   destroy_all();
   start_ = new_start_;
-  finish_ = new_finish_;
+  finish_ = new_finish;
   end_of_storage_ = start_ + new_size;
+
+  return new_pos;
 }
 
 template <typename T, typename Alloc>
 inline void vector<T, Alloc>::destroy_all() {
   sgi::destroy(start_, finish_);
-  data_allocator::deallocate(start_, end_of_storage_ - start_);
+  data_allocator::deallocate(start_, capacity());
 }
 
 }  // namespace sgi
