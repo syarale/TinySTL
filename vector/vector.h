@@ -88,7 +88,7 @@ inline void vector<T, Alloc>::push_back(const T& value) {
 // This is ensured by the user.
 template <typename T, typename Alloc>
 inline void vector<T, Alloc>::pop_back() {
-  sgi::destroy(finish_);
+  sgi::destroy(finish_ - 1);
   --finish_;
 }
 
