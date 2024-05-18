@@ -3,11 +3,16 @@
 #include "gtest/gtest.h"
 
 inline constexpr int DEFAULT_VALUE = 0;
+inline constexpr int TEST_VALUE = 123456;
 
 struct Foo {
   int value_;
   Foo(int x = DEFAULT_VALUE) : value_(x) {}
 };
+
+std::size_t remaining_size(const sgi::vector<Foo>& vec) {
+  return vec.capacity() - vec.size();
+}
 
 TEST(vector, basic) {
   sgi::vector<Foo> vec1;
@@ -46,6 +51,38 @@ TEST(vector, basic) {
     EXPECT_EQ(vec4[i].value_, 123456);
     vec4[i].value_ = i + 1;
     EXPECT_EQ(vec4[i].value_, i + 1);
+  }
+  EXPECT_EQ(vec4.front().value_, 1);
+  EXPECT_EQ(vec4.back().value_, 10);
+}
+
+TEST(vector, push_back) {
+  sgi::vector<Foo> vec1;
+  EXPECT_EQ(vec1.empty(), true);
+
+  vec1.push_back({TEST_VALUE});
+  EXPECT_EQ(vec1.size(), 1);
+  EXPECT_EQ(vec1.capacity(), 1);
+  EXPECT_EQ(remaining_size(vec1), 0);
+  EXPECT_EQ(vec1.front().value_, TEST_VALUE);
+
+  sgi::vector<Foo> vec2(10, TEST_VALUE);
+  EXPECT_EQ(vec2.size(), 10);
+  EXPECT_EQ(vec2.capacity(), 20);
+
+  EXPECT_EQ(remaining_size(vec2), 10);
+  for (std::size_t i = 0; i < 10; i++) {
+    vec2.push_back({TEST_VALUE});
+    EXPECT_EQ(vec2.capacity(), 20);
+  }
+  EXPECT_EQ(vec2.size(), 10 + 10);
+  EXPECT_EQ(remaining_size(vec2), 0);
+
+  vec2.push_back({TEST_VALUE});
+  EXPECT_EQ(vec2.size(), 21);
+  EXPECT_EQ(vec2.capacity(), 40);
+  for (std::size_t i = 0; i < vec2.size(); i++) {
+    EXPECT_EQ(vec2[i].value_, TEST_VALUE);
   }
 }
 

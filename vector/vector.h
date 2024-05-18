@@ -4,6 +4,7 @@
 #include "alloc.h"
 #include "construct.h"
 #include "exception.h"
+#include "uninitialized.h"
 
 namespace sgi {
 
@@ -20,7 +21,7 @@ class vector {
   explicit vector() = default;
   explicit vector(size_type n) : vector(n, T()){};
   explicit vector(size_type n, const T& value);
-  ~vector();
+  ~vector() { destroy_all(); }
 
   iterator begin() const { return start_; }
   iterator end() const { return finish_; }
@@ -32,11 +33,11 @@ class vector {
   }
 
   reference operator[](size_type n) { return *(start_ + n); }
+  reference front() { return *start_; }
+  reference back() { return *(finish_ - 1); }
 
-  reference front() {}
-  reference back() {}
-  void push_back() {}
-  void pop_back() {}
+  void push_back(const T& value);
+  void pop_back();
 
   void insert(iterator position, const T& value) {}
   void insert(iterator position, size_type n, const T& value) {}
@@ -49,6 +50,9 @@ class vector {
 
  private:
   using data_allocator = sgi::allocator<value_type, Alloc>;
+  void expansion();
+  void destroy_all();
+
   iterator start_ = nullptr;
   iterator finish_ = nullptr;
   iterator end_of_storage_ = nullptr;
@@ -72,7 +76,36 @@ inline vector<T, Alloc>::vector(size_type n, const T& value) {
 }
 
 template <typename T, typename Alloc>
-inline vector<T, Alloc>::~vector() {
+inline void vector<T, Alloc>::push_back(const T& value) {
+  if (finish_ == end_of_storage_) {
+    expansion();
+  }
+  *finish_ = value;
+  ++finish_;
+}
+
+// An error will result when pop_back is called on an empty vector.
+// This is ensured by the user.
+template <typename T, typename Alloc>
+inline void vector<T, Alloc>::pop_back() {
+  sgi::destroy(finish_);
+  --finish_;
+}
+
+template <typename T, typename Alloc>
+inline void vector<T, Alloc>::expansion() {
+  size_type new_size = (size() == 0) ? 1 : 2 * size();
+  iterator new_start_ =
+      static_cast<iterator>(data_allocator::allocate(new_size));
+  iterator new_finish_ = sgi::uninitialized_copy(start_, finish_, new_start_);
+  destroy_all();
+  start_ = new_start_;
+  finish_ = new_finish_;
+  end_of_storage_ = start_ + new_size;
+}
+
+template <typename T, typename Alloc>
+inline void vector<T, Alloc>::destroy_all() {
   sgi::destroy(start_, finish_);
   data_allocator::deallocate(start_, end_of_storage_ - start_);
 }
