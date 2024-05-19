@@ -201,6 +201,36 @@ TEST(vector, erase) {
   EXPECT_TRUE(vec.empty());
 }
 
+TEST(vector, resize) {
+  sgi::vector<Foo> vec1(10, TEST_VALUE);
+  vec1.resize(20);
+  EXPECT_EQ(vec1.size(), 20);
+  for (std::size_t i = 0; i < vec1.size(); i++) {
+    if (i < 10) {
+      EXPECT_EQ(vec1[i].value_, TEST_VALUE);
+    } else {
+      EXPECT_EQ(vec1[i].value_, 0);
+    }
+  }
+
+  vec1.resize(5);
+  EXPECT_EQ(vec1.size(), 5);
+  for (std::size_t i = 0; i < vec1.size(); i++) {
+    EXPECT_EQ(vec1[i].value_, TEST_VALUE);
+  }
+
+  vec1.resize(0);
+  EXPECT_TRUE(vec1.empty());
+
+  vec1.resize(10, {TEST_VALUE * 1});
+  vec1.resize(20, {TEST_VALUE * 2});
+  vec1.resize(30, {TEST_VALUE * 3});
+  EXPECT_EQ(vec1.size(), 30);
+  for (std::size_t i = 0; i < vec1.size(); i++) {
+    EXPECT_EQ(vec1[i].value_, (i / 10 + 1) * TEST_VALUE);
+  }
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
