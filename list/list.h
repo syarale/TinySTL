@@ -2,14 +2,15 @@
 #define LIST_LIST_H_
 
 #include "alloc.h"
+#include "construct.h"
 #include "iterator.h"
 
 namespace sgi {
 
 template <typename T>
-struct list_node {
-  list_node<T>* prev;
-  list_node<T>* next;
+struct _list_node {
+  _list_node<T>* prev;
+  _list_node<T>* next;
   T data;
 };
 
@@ -24,7 +25,7 @@ struct list_iterator {
 
   using iterator = list_iterator<T, T&, T*>;
   using self = list_iterator<T, Ref, Ptr>;
-  using link_type = list_node<T>*;
+  using link_type = _list_node<T>*;
 
   link_type node_;
 
@@ -48,19 +49,19 @@ struct list_iterator {
 template <typename T, typename Alloc = alloc>
 class list {
   using iterator = list_iterator<T, T&, T*>;
-  using ListNode = list_node<T>;
-  using LinkType = list_node<T>*;
+  using list_node = _list_node<T>;
+  using link_type = _list_node<T>*;
   using size_type = std::size_t;
   using reference = T&;
 
  public:
-  list();
+  list() { init_empty_list(); }
 
-  iterator begin();
-  iterator end();
+  iterator begin() { return iterator(dummy_node_->next); }
+  iterator end() { return iterator(dummy_node_); }
 
-  bool empty() const;
-  size_type size() const;
+  bool empty() const { return dummy_node_->next == dummy_node_; }
+  size_type size() const { return count_; }
 
   reference front();
   reference back();
@@ -84,19 +85,39 @@ class list {
   void reverse();
   void sort();
 
- private:
-  using list_node_allocator = sgi::allocator<ListNode, Alloc>;
+  //  private:
+  using node_allocator = sgi::allocator<list_node, Alloc>;
 
-  LinkType get_node();
-  LinkType put_node(LinkType p);
-  LinkType create_node(const T& x);
-  void destroy_node(LinkType p);
+  link_type allocate_node() {
+    return static_cast<link_type>(node_allocator::allocate());
+  }
 
-  void empty_initialize();
+  void deallocate_node(link_type p) { node_allocator::deallocate(p); }
+
+  link_type create_node(const T& val) {
+    link_type node = allocate_node();
+    sgi::construct(&(node->data), val);
+    return node;
+  }
+
+  void destroy_node(link_type node) {
+    sgi::destroy(&(node->data));
+    deallocate_node(node);
+  }
+
+  void init_empty_list();
   void transfer(iterator position, iterator first, iterator last);
 
-  LinkType dummy_node_;
+  link_type dummy_node_;
+  size_type count_ = 0;
 };
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::init_empty_list() {
+  dummy_node_ = allocate_node();
+  dummy_node_->prev = dummy_node_;
+  dummy_node_->next = dummy_node_;
+}
 
 }  // namespace sgi
 #endif  // LIST_LIST_H_
