@@ -29,21 +29,36 @@ struct list_iterator {
 
   link_type node_;
 
-  list_iterator(){};
-  list_iterator(link_type x) : node_(x) {}
-  list_iterator(const iterator& x) : node_(x.node_) {}
+  list_iterator(link_type ptr = nullptr) : node_(ptr) {}
+  list_iterator(const iterator& it) : node_(it.node_) {}
 
-  bool operator==(const self& x) const;
-  bool operator!=(const self& x) const;
+  bool operator==(const self& it) const { return node_ == it.node_; }
+  bool operator!=(const self& it) const { return node_ != it.node_; }
 
-  reference operator*() const;
-  pointer operator->() const;
+  reference operator*() const { return node_->data; }
+  pointer operator->() const { return &(node_->data); }
 
-  self& operator++();
-  self operator++(int);
+  self& operator++() {
+    node_ = node_->next;
+    return *this;
+  }
 
-  self& operator--();
-  self operator--(int);
+  self operator++(int) {
+    list_iterator old_it = *this;
+    node_ = node_->next;
+    return old_it;
+  }
+
+  self& operator--() {
+    node_ = node_->prev;
+    return *this;
+  }
+
+  self operator--(int) {
+    list_iterator old_it = *this;
+    node_ = node_->prev;
+    return old_it;
+  }
 };
 
 template <typename T, typename Alloc = alloc>
