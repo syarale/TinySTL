@@ -71,6 +71,7 @@ class list {
 
  public:
   list() { init_empty_list(); }
+  ~list() {}
 
   iterator begin() { return iterator(dummy_node_->next); }
   iterator end() { return iterator(dummy_node_); }
@@ -78,13 +79,13 @@ class list {
   bool empty() const { return dummy_node_->next == dummy_node_; }
   size_type size() const { return count_; }
 
-  reference front();
-  reference back();
+  reference front() { return *begin(); }   // empty list results in UB
+  reference back() { return *(--end()); }  // empty list results in UB
 
-  void push_front(const T& x);
-  void push_back(const T& x);
-  void pop_front();
-  void pop_back();
+  void push_front(const T& val);
+  void push_back(const T& val);
+  void pop_front();  // empty list results in UB
+  void pop_back();   // empty list results in UB
 
   iterator insert(iterator position, const T& x);
   iterator erase(iterator position);
@@ -132,6 +133,44 @@ inline void list<T, Alloc>::init_empty_list() {
   dummy_node_ = allocate_node();
   dummy_node_->prev = dummy_node_;
   dummy_node_->next = dummy_node_;
+}
+
+template <typename T, typename Alloc>
+void list<T, Alloc>::push_front(const T& val) {
+  link_type node = create_node(val);
+  link_type head = dummy_node_->next;
+  node->next = head;
+  node->prev = dummy_node_;
+  head->prev = node;
+  dummy_node_->next = node;
+}
+
+template <typename T, typename Alloc>
+void list<T, Alloc>::push_back(const T& val) {
+  link_type tail = dummy_node_->prev;
+  link_type node = create_node(val);
+  node->prev = tail;
+  node->next = dummy_node_;
+  tail->next = node;
+  dummy_node_->prev = node;
+}
+
+template <typename T, typename Alloc>
+void list<T, Alloc>::pop_front() {
+  link_type head = dummy_node_->next;
+  link_type new_head = head->next;
+  dummy_node_->next = new_head;
+  new_head->prev = dummy_node_;
+  destroy_node(head);
+}
+
+template <typename T, typename Alloc>
+void list<T, Alloc>::pop_back() {
+  link_type tail = dummy_node_->prev;
+  link_type new_tail = tail->prev;
+  new_tail->next = dummy_node_;
+  dummy_node_->prev = new_tail;
+  destroy_node(tail);
 }
 
 }  // namespace sgi

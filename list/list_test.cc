@@ -40,6 +40,49 @@ TEST(list, basic_apis) {
   sgi::list<Foo> foo_list;
   EXPECT_TRUE(foo_list.empty());
   EXPECT_EQ(foo_list.size(), 0);
+  EXPECT_EQ(foo_list.begin(), foo_list.end());
+  EXPECT_FALSE(foo_list.begin() != foo_list.end());
+}
+
+TEST(list, push_pop) {
+  sgi::list<Foo> foo_list;
+  for (int i = 9; i >= 0; i--) {
+    foo_list.push_front(Foo(i));
+    EXPECT_EQ(foo_list.begin()->value_, i);
+
+    Foo& foo = foo_list.front();
+    EXPECT_EQ(foo.value_, i);
+    foo.value_ *= 10;
+  }
+
+  for (int i = 10; i < 20; i++) {
+    foo_list.push_back(Foo(i));
+    EXPECT_EQ((--foo_list.end())->value_, i);
+
+    Foo& foo = foo_list.back();
+    EXPECT_EQ(foo.value_, i);
+    foo.value_ *= 10;
+  }
+
+  int i = 0;
+  for (auto it = foo_list.begin(); it != foo_list.end(); it++) {
+    EXPECT_EQ(it->value_, i * 10);
+    i++;
+  }
+
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(foo_list.begin()->value_, i * 10);
+    EXPECT_EQ(foo_list.front().value_, i * 10);
+    foo_list.pop_front();
+  }
+
+  for (int i = 19; i >= 10; i--) {
+    EXPECT_EQ((--foo_list.end())->value_, i * 10);
+    EXPECT_EQ(foo_list.back().value_, i * 10);
+    foo_list.pop_back();
+  }
+  EXPECT_TRUE(foo_list.empty());
+  EXPECT_EQ(foo_list.size(), 0);
 }
 
 int main(int argc, char** argv) {
