@@ -136,7 +136,7 @@ inline void list<T, Alloc>::init_empty_list() {
 }
 
 template <typename T, typename Alloc>
-void list<T, Alloc>::push_front(const T& val) {
+inline void list<T, Alloc>::push_front(const T& val) {
   link_type node = create_node(val);
   link_type head = dummy_node_->next;
   node->next = head;
@@ -146,7 +146,7 @@ void list<T, Alloc>::push_front(const T& val) {
 }
 
 template <typename T, typename Alloc>
-void list<T, Alloc>::push_back(const T& val) {
+inline void list<T, Alloc>::push_back(const T& val) {
   link_type tail = dummy_node_->prev;
   link_type node = create_node(val);
   node->prev = tail;
@@ -156,7 +156,7 @@ void list<T, Alloc>::push_back(const T& val) {
 }
 
 template <typename T, typename Alloc>
-void list<T, Alloc>::pop_front() {
+inline void list<T, Alloc>::pop_front() {
   link_type head = dummy_node_->next;
   link_type new_head = head->next;
   dummy_node_->next = new_head;
@@ -165,7 +165,7 @@ void list<T, Alloc>::pop_front() {
 }
 
 template <typename T, typename Alloc>
-void list<T, Alloc>::pop_back() {
+inline void list<T, Alloc>::pop_back() {
   link_type tail = dummy_node_->prev;
   link_type new_tail = tail->prev;
   new_tail->next = dummy_node_;
