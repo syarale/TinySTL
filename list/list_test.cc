@@ -54,6 +54,7 @@ TEST(list, push_pop) {
     EXPECT_EQ(foo.value_, i);
     foo.value_ *= 10;
   }
+  EXPECT_EQ(foo_list.size(), 10);
 
   for (int i = 10; i < 20; i++) {
     foo_list.push_back(Foo(i));
@@ -63,6 +64,7 @@ TEST(list, push_pop) {
     EXPECT_EQ(foo.value_, i);
     foo.value_ *= 10;
   }
+  EXPECT_EQ(foo_list.size(), 20);
 
   int i = 0;
   for (auto it = foo_list.begin(); it != foo_list.end(); it++) {
@@ -75,6 +77,7 @@ TEST(list, push_pop) {
     EXPECT_EQ(foo_list.front().value_, i * 10);
     foo_list.pop_front();
   }
+  EXPECT_EQ(foo_list.size(), 10);
 
   for (int i = 19; i >= 10; i--) {
     EXPECT_EQ((--foo_list.end())->value_, i * 10);
@@ -92,11 +95,14 @@ TEST(list, insert_erase) {
     EXPECT_EQ(it, foo_list.begin());
     EXPECT_EQ((*it).value_, i);
   }
+  EXPECT_EQ(foo_list.size(), 10);
+
   for (int i = 20; i < 30; i++) {
     auto it = foo_list.insert(foo_list.end(), Foo(i));
     EXPECT_EQ(it, --foo_list.end());
     EXPECT_EQ((*it).value_, i);
   }
+  EXPECT_EQ(foo_list.size(), 20);
 
   auto it = foo_list.begin();
   int count = 10;
@@ -108,6 +114,7 @@ TEST(list, insert_erase) {
     it = foo_list.insert(it, Foo(i));
     EXPECT_EQ((*it).value_, i);
   }
+  EXPECT_EQ(foo_list.size(), 30);
 
   count = 0;
   for (auto it = foo_list.begin(); it != foo_list.end(); it++) {
@@ -121,12 +128,14 @@ TEST(list, insert_erase) {
     it = foo_list.erase(it);
   }
   EXPECT_EQ((*it).value_, 10);
+  EXPECT_EQ(foo_list.size(), 20);
 
   ++it;
   for (int i = 11; i < 29; i++) {
     EXPECT_EQ((*it).value_, i);
     it = foo_list.erase(it);
   }
+  EXPECT_EQ(foo_list.size(), 2);
   EXPECT_EQ(foo_list.front().value_, 10);
   EXPECT_EQ(foo_list.back().value_, 29);
 }

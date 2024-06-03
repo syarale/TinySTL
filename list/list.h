@@ -133,6 +133,7 @@ inline void list<T, Alloc>::init_empty_list() {
   dummy_node_ = allocate_node();
   dummy_node_->prev = dummy_node_;
   dummy_node_->next = dummy_node_;
+  count_ = 0;
 }
 
 template <typename T, typename Alloc>
@@ -143,6 +144,7 @@ inline void list<T, Alloc>::push_front(const T& val) {
   node->prev = dummy_node_;
   head->prev = node;
   dummy_node_->next = node;
+  count_++;
 }
 
 template <typename T, typename Alloc>
@@ -153,6 +155,7 @@ inline void list<T, Alloc>::push_back(const T& val) {
   node->next = dummy_node_;
   tail->next = node;
   dummy_node_->prev = node;
+  count_++;
 }
 
 template <typename T, typename Alloc>
@@ -162,6 +165,7 @@ inline void list<T, Alloc>::pop_front() {
   dummy_node_->next = new_head;
   new_head->prev = dummy_node_;
   destroy_node(head);
+  count_--;
 }
 
 template <typename T, typename Alloc>
@@ -171,6 +175,7 @@ inline void list<T, Alloc>::pop_back() {
   new_tail->next = dummy_node_;
   dummy_node_->prev = new_tail;
   destroy_node(tail);
+  count_--;
 }
 
 template <typename T, typename Alloc>
@@ -181,6 +186,7 @@ inline typename list<T, Alloc>::iterator list<T, Alloc>::insert(
   node->prev = position.node_->prev;
   (position.node_->prev)->next = node;
   position.node_->prev = node;
+  count_++;
   return iterator(node);
 }
 
@@ -192,6 +198,7 @@ inline typename list<T, Alloc>::iterator list<T, Alloc>::erase(
   prev_node->next = next_node;
   next_node->prev = prev_node;
   destroy_node(position.node_);
+  count_--;
   return iterator(next_node);
 }
 
