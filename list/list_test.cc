@@ -85,6 +85,52 @@ TEST(list, push_pop) {
   EXPECT_EQ(foo_list.size(), 0);
 }
 
+TEST(list, insert_erase) {
+  sgi::list<Foo> foo_list;
+  for (int i = 9; i >= 0; i--) {
+    auto it = foo_list.insert(foo_list.begin(), Foo(i));
+    EXPECT_EQ(it, foo_list.begin());
+    EXPECT_EQ((*it).value_, i);
+  }
+  for (int i = 20; i < 30; i++) {
+    auto it = foo_list.insert(foo_list.end(), Foo(i));
+    EXPECT_EQ(it, --foo_list.end());
+    EXPECT_EQ((*it).value_, i);
+  }
+
+  auto it = foo_list.begin();
+  int count = 10;
+  while (count-- > 0) {
+    ++it;
+  }
+
+  for (int i = 19; i >= 10; i--) {
+    it = foo_list.insert(it, Foo(i));
+    EXPECT_EQ((*it).value_, i);
+  }
+
+  count = 0;
+  for (auto it = foo_list.begin(); it != foo_list.end(); it++) {
+    EXPECT_EQ((*it).value_, count++);
+  }
+
+  it = foo_list.begin();
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(it, foo_list.begin());
+    EXPECT_EQ((*it).value_, i);
+    it = foo_list.erase(it);
+  }
+  EXPECT_EQ((*it).value_, 10);
+
+  ++it;
+  for (int i = 11; i < 29; i++) {
+    EXPECT_EQ((*it).value_, i);
+    it = foo_list.erase(it);
+  }
+  EXPECT_EQ(foo_list.front().value_, 10);
+  EXPECT_EQ(foo_list.back().value_, 29);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

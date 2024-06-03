@@ -87,7 +87,7 @@ class list {
   void pop_front();  // empty list results in UB
   void pop_back();   // empty list results in UB
 
-  iterator insert(iterator position, const T& x);
+  iterator insert(iterator position, const T& val);
   iterator erase(iterator position);
   void remove(const T& value);
   void unique();
@@ -171,6 +171,28 @@ inline void list<T, Alloc>::pop_back() {
   new_tail->next = dummy_node_;
   dummy_node_->prev = new_tail;
   destroy_node(tail);
+}
+
+template <typename T, typename Alloc>
+inline typename list<T, Alloc>::iterator list<T, Alloc>::insert(
+    iterator position, const T& val) {
+  link_type node = create_node(val);
+  node->next = position.node_;
+  node->prev = position.node_->prev;
+  (position.node_->prev)->next = node;
+  position.node_->prev = node;
+  return iterator(node);
+}
+
+template <typename T, typename Alloc>
+inline typename list<T, Alloc>::iterator list<T, Alloc>::erase(
+    iterator position) {
+  link_type prev_node = position.node_->prev;
+  link_type next_node = position.node_->next;
+  prev_node->next = next_node;
+  next_node->prev = prev_node;
+  destroy_node(position.node_);
+  return iterator(next_node);
 }
 
 }  // namespace sgi
