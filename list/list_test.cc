@@ -7,6 +7,7 @@ inline constexpr int DEFAULT_VAL = 101;
 struct Foo {
   int value_ = 0;
   Foo() = default;
+  bool operator==(const Foo& foo) { return value_ == foo.value_; }
   Foo(int val) : value_(val) {}
 };
 
@@ -138,6 +139,38 @@ TEST(list, insert_erase) {
   EXPECT_EQ(foo_list.size(), 2);
   EXPECT_EQ(foo_list.front().value_, 10);
   EXPECT_EQ(foo_list.back().value_, 29);
+}
+
+TEST(list, remove) {
+  sgi::list<Foo> foo_list;
+  for (int i = 0; i < 20; i++) {
+    auto it = foo_list.insert(foo_list.end(), Foo(i));
+    if (i % 2 == 0) {
+      foo_list.insert(it, Foo(DEFAULT_VAL));
+    }
+  }
+  EXPECT_EQ(foo_list.size(), 30);
+
+  foo_list.remove(Foo(DEFAULT_VAL));
+  EXPECT_EQ(foo_list.size(), 20);
+
+  int count = 0;
+  for (auto it = foo_list.begin(); it != foo_list.end(); it++) {
+    EXPECT_EQ((*it).value_, count++);
+  }
+  EXPECT_EQ(foo_list.size(), 20);
+}
+
+TEST(list, clear) {
+  sgi::list<Foo> foo_list;
+  for (int i = 0; i < 20; i++) {
+    foo_list.insert(foo_list.end(), Foo(i));
+  }
+  EXPECT_EQ(foo_list.size(), 20);
+
+  foo_list.clear();
+  EXPECT_TRUE(foo_list.empty());
+  EXPECT_EQ(foo_list.size(), 0);
 }
 
 int main(int argc, char** argv) {

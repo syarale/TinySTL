@@ -202,5 +202,25 @@ inline typename list<T, Alloc>::iterator list<T, Alloc>::erase(
   return iterator(next_node);
 }
 
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::remove(const T& value) {
+  auto it = begin();
+  while (it != end()) {
+    if ((*it) == value) {
+      it = erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::clear() {
+  auto it = begin();
+  while (it != end()) {
+    it = erase(it);
+  }
+}
+
 }  // namespace sgi
 #endif  // LIST_LIST_H_
