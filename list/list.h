@@ -90,7 +90,7 @@ class list {
   iterator insert(iterator position, const T& val);
   iterator erase(iterator position);
   void remove(const T& value);
-  void unique();
+  void unique();  // need to ensure that the list is sorted
   void clear();
 
   void splice(iterator position, list& x);
@@ -219,6 +219,24 @@ inline void list<T, Alloc>::clear() {
   auto it = begin();
   while (it != end()) {
     it = erase(it);
+  }
+}
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::unique() {
+  if (empty() || size() == 1) {
+    return;
+  }
+
+  auto prev_it = begin();
+  auto it = ++begin();
+  while (it != end()) {
+    if (*it == *prev_it) {
+      it = erase(it);
+    } else {
+      ++prev_it;
+      ++it;
+    }
   }
 }
 

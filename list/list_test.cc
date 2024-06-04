@@ -1,5 +1,7 @@
 #include "list.h"
 
+#include <random>
+
 #include "gtest/gtest.h"
 
 inline constexpr int DEFAULT_VAL = 101;
@@ -10,6 +12,14 @@ struct Foo {
   bool operator==(const Foo& foo) { return value_ == foo.value_; }
   Foo(int val) : value_(val) {}
 };
+
+int GetRandomInt(int min_val, int max_val) {
+  // assert(min_val < max_val);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> distrib(min_val, max_val);
+  return distrib(gen);
+}
 
 TEST(list_iterator, basic_apis) {
   using list_iterator = sgi::list_iterator<Foo, Foo&, Foo*>;
@@ -171,6 +181,31 @@ TEST(list, clear) {
   foo_list.clear();
   EXPECT_TRUE(foo_list.empty());
   EXPECT_EQ(foo_list.size(), 0);
+}
+
+TEST(list, unique) {
+  sgi::list<Foo> foo_list;
+  int count = 0;
+  for (int i = 0; i < 20; i++) {
+    foo_list.insert(foo_list.end(), Foo(i));
+    if (i == 10 || i == 15) {
+      int num = GetRandomInt(1, 10);
+      for (int j = 0; j < num; j++) {
+        foo_list.insert(foo_list.end(), Foo(i));
+      }
+      count += num;
+    }
+  }
+  count += 20;
+  EXPECT_EQ(foo_list.size(), count);
+
+  foo_list.unique();
+  EXPECT_EQ(foo_list.size(), 20);
+
+  int value = 0;
+  for (auto it = foo_list.begin(); it != foo_list.end(); it++) {
+    EXPECT_EQ(it->value_, value++);
+  }
 }
 
 int main(int argc, char** argv) {
