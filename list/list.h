@@ -96,8 +96,8 @@ class list {
   void unique();  // need to ensure that the list is sorted
   void clear();
 
-  void splice(iterator position, list& x);
-  void splice(iterator position, list&, iterator i);
+  void splice(iterator position, list& lst);
+  void splice(iterator position, list&, iterator it);
   void splice(iterator position, list&, iterator first, iterator last);
 
   void merge(list& x);
@@ -243,6 +243,50 @@ inline typename list<T, Alloc>::size_type list<T, Alloc>::size() const {
     ++count;
   }
   return count;
+}
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::transfer(iterator position, iterator first,
+                                     iterator last) {
+  if (first == last) {
+    return;
+  }
+
+  link_type prev_node = first.node_->prev;
+  --last;
+  link_type next_node = last.node_->next;
+  prev_node->next = next_node;
+  next_node->prev = prev_node;
+
+  link_type prev_pos_node = position.node_->prev;
+  prev_pos_node->next = first.node_;
+  first.node_->prev = prev_pos_node;
+  position.node_->prev = last.node_;
+  last.node_->next = position.node_;
+}
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::splice(iterator position, list& lst) {
+  if (!lst.empty()) {
+    transfer(position, lst.begin(), lst.end());
+  }
+}
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::splice(iterator position, list&, iterator it) {
+  auto next_it = it;
+  ++next_it;
+  if (it != next_it) {
+    transfer(position, it, next_it);
+  }
+}
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::splice(iterator position, list&, iterator first,
+                                   iterator last) {
+  if (first != last) {
+    transfer(position, first, last);
+  }
 }
 
 }  // namespace sgi

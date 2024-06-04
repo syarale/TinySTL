@@ -21,6 +21,12 @@ int GetRandomInt(int min_val, int max_val) {
   return distrib(gen);
 }
 
+void Print(sgi::list<Foo>& lst) {
+  for (auto it = lst.begin(); it != lst.end(); it++) {
+    std::cout << "val: " << it->value_ << std::endl;
+  }
+}
+
 TEST(list_iterator, basic_apis) {
   using list_iterator = sgi::list_iterator<Foo, Foo&, Foo*>;
   sgi::_list_node<Foo>* ptr = new sgi::_list_node<Foo>();
@@ -205,6 +211,31 @@ TEST(list, unique) {
   int value = 0;
   for (auto it = foo_list.begin(); it != foo_list.end(); it++) {
     EXPECT_EQ(it->value_, value++);
+  }
+}
+
+TEST(list, splice) {
+  sgi::list<Foo> foo_list;
+  sgi::list<Foo> tmp_list;
+  for (int i = 0; i < 10; i++) {
+    foo_list.insert(foo_list.end(), Foo(i));
+    tmp_list.insert(tmp_list.end(), Foo(DEFAULT_VAL));
+  }
+
+  {
+    auto pos = foo_list.begin();
+    foo_list.splice(pos, tmp_list);
+    EXPECT_EQ(foo_list.size(), 20);
+
+    auto it = foo_list.begin();
+    for (int i = -10; i < 10; i++) {
+      if (i < 0) {
+        EXPECT_EQ(it->value_, DEFAULT_VAL);
+      } else {
+        EXPECT_EQ(it->value_, i);
+      }
+      ++it;
+    }
   }
 }
 
