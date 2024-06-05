@@ -104,7 +104,7 @@ class list {
   void reverse();
   void sort();
 
-  //  private:
+ private:
   using node_allocator = sgi::allocator<list_node, Alloc>;
 
   link_type allocate_node() {
