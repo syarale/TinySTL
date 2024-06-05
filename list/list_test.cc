@@ -9,8 +9,10 @@ inline constexpr int DEFAULT_VAL = 101;
 struct Foo {
   int value_ = 0;
   Foo() = default;
-  bool operator==(const Foo& foo) { return value_ == foo.value_; }
   Foo(int val) : value_(val) {}
+
+  bool operator==(const Foo& foo) { return value_ == foo.value_; }
+  bool operator<(const Foo& foo) { return value_ < foo.value_; }
 };
 
 int GetRandomInt(int min_val, int max_val) {
@@ -307,6 +309,45 @@ TEST(list, splice_range) {
     }
     ++it;
   }
+}
+
+TEST(list, merge) {
+  sgi::list<Foo> foo_list;
+  sgi::list<Foo> tmp_list;
+  for (int i = 0; i < 12; i++) {
+    if (i % 2 == 0) {
+      foo_list.insert(foo_list.end(), Foo(i));
+    } else {
+      tmp_list.insert(tmp_list.end(), Foo(i));
+    }
+  }
+  foo_list.push_back(Foo(13));
+  tmp_list.push_back(Foo(12));
+  tmp_list.push_back(Foo(14));
+  tmp_list.push_back(Foo(15));
+
+  foo_list.merge(tmp_list);
+  EXPECT_TRUE(tmp_list.empty());
+  EXPECT_EQ(foo_list.size(), 16);
+
+  auto it = foo_list.begin();
+  for (int i = 0; i < 16; i++) {
+    EXPECT_EQ(it->value_, i);
+    ++it;
+  }
+
+  sgi::list<Foo> other_list;
+  other_list.merge(foo_list);
+  it = other_list.begin();
+  for (int i = 0; i < 16; i++) {
+    EXPECT_EQ(it->value_, i);
+    ++it;
+  }
+
+  foo_list.clear();
+  tmp_list.clear();
+  foo_list.merge(tmp_list);
+  EXPECT_TRUE(foo_list.empty());
 }
 
 int main(int argc, char** argv) {

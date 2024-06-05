@@ -100,7 +100,7 @@ class list {
   void splice(iterator position, list&, iterator it);
   void splice(iterator position, list&, iterator first, iterator last);
 
-  void merge(list& x);
+  void merge(list& lst);
   void reverse();
   void sort();
 
@@ -286,6 +286,28 @@ inline void list<T, Alloc>::splice(iterator position, list&, iterator first,
                                    iterator last) {
   if (first != last) {
     transfer(position, first, last);
+  }
+}
+
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::merge(list& lst) {
+  auto first = begin();
+  auto last = end();
+  auto lst_first = lst.begin();
+  auto lst_last = lst.end();
+
+  while (first != last && lst_first != lst_last) {
+    if (*lst_first < *first) {
+      auto next = lst_first;
+      transfer(first, lst_first, ++next);
+      lst_first = next;
+    } else {
+      ++first;
+    }
+  }
+
+  if (lst_first != lst_last) {
+    transfer(last, lst_first, lst_last);
   }
 }
 
