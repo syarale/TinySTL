@@ -214,7 +214,7 @@ TEST(list, unique) {
   }
 }
 
-TEST(list, splice) {
+TEST(list, splice_list) {
   sgi::list<Foo> foo_list;
   sgi::list<Foo> tmp_list;
   for (int i = 0; i < 10; i++) {
@@ -236,6 +236,76 @@ TEST(list, splice) {
       }
       ++it;
     }
+  }
+
+  {
+    EXPECT_TRUE(tmp_list.empty());
+    tmp_list.push_back(Foo(DEFAULT_VAL));
+    auto pos = tmp_list.end();
+    foo_list.splice(pos, foo_list);
+    EXPECT_EQ(tmp_list.size(), 21);
+
+    auto it = tmp_list.begin();
+    for (int i = 0; i < 21; i++) {
+      if (i < 11) {
+        EXPECT_EQ(it->value_, DEFAULT_VAL);
+      } else {
+        EXPECT_EQ(it->value_, i - 11);
+      }
+      ++it;
+    }
+  }
+}
+
+TEST(list, splice_single) {
+  sgi::list<Foo> foo_list;
+  sgi::list<Foo> tmp_list;
+  for (int i = 0; i < 10; i++) {
+    foo_list.insert(foo_list.end(), Foo(i));
+    tmp_list.insert(tmp_list.end(), Foo(DEFAULT_VAL));
+  }
+
+  auto tmp_it1 = tmp_list.begin();
+  auto tmp_it3 = tmp_list.end();
+  ++tmp_it1;
+  --tmp_it3;
+
+  foo_list.splice(foo_list.begin(), tmp_list, tmp_it1);
+  EXPECT_EQ(tmp_list.size(), 9);
+  EXPECT_EQ(foo_list.size(), 11);
+  EXPECT_EQ(foo_list.front().value_, DEFAULT_VAL);
+
+  foo_list.splice((++foo_list.begin()), tmp_list, tmp_it3);
+  EXPECT_EQ(tmp_list.size(), 8);
+  EXPECT_EQ(foo_list.size(), 12);
+  EXPECT_EQ((++foo_list.begin())->value_, DEFAULT_VAL);
+
+  foo_list.splice((++foo_list.begin()), tmp_list, ++tmp_list.begin());
+  EXPECT_EQ(tmp_list.size(), 7);
+  EXPECT_EQ(foo_list.size(), 13);
+  EXPECT_EQ((++foo_list.begin())->value_, DEFAULT_VAL);
+}
+
+TEST(list, splice_range) {
+  sgi::list<Foo> foo_list;
+  sgi::list<Foo> tmp_list;
+  for (int i = 0; i < 10; i++) {
+    foo_list.insert(foo_list.end(), Foo(i));
+    tmp_list.insert(tmp_list.end(), Foo(DEFAULT_VAL));
+  }
+
+  foo_list.splice(foo_list.begin(), tmp_list, ++tmp_list.begin(),
+                  --tmp_list.end());
+  EXPECT_EQ(tmp_list.size(), 2);
+  EXPECT_EQ(foo_list.size(), 18);
+  auto it = foo_list.begin();
+  for (int i = 0; i < 18; i++) {
+    if (i < 8) {
+      EXPECT_EQ(it->value_, DEFAULT_VAL);
+    } else {
+      EXPECT_EQ(it->value_, i - 8);
+    }
+    ++it;
   }
 }
 
