@@ -311,5 +311,20 @@ inline void list<T, Alloc>::merge(list& lst) {
   }
 }
 
+template <typename T, typename Alloc>
+inline void list<T, Alloc>::reverse() {
+  if (empty() || (dummy_node_->next)->next == dummy_node_) {
+    return;
+  }
+
+  auto first = ++begin();
+  while (first != end()) {
+    auto next = first;
+    ++next;
+    transfer(begin(), first, next);
+    first = next;
+  }
+}
+
 }  // namespace sgi
 #endif  // LIST_LIST_H_

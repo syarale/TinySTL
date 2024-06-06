@@ -350,6 +350,44 @@ TEST(list, merge) {
   EXPECT_TRUE(foo_list.empty());
 }
 
+TEST(list, reverse) {
+  {
+    sgi::list<Foo> foo_list;
+    for (int i = 0; i < 10; i++) {
+      foo_list.insert(foo_list.end(), Foo(i));
+    }
+
+    foo_list.reverse();
+
+    auto it = foo_list.begin();
+    for (int i = 9; i >= 0; i--) {
+      EXPECT_EQ(it->value_, i);
+      ++it;
+    }
+  }
+
+  {
+    sgi::list<Foo> foo_list;
+    foo_list.push_back(Foo(0));
+    foo_list.push_back(Foo(1));
+
+    foo_list.reverse();
+    EXPECT_EQ(foo_list.front().value_, 1);
+    EXPECT_EQ((++foo_list.begin())->value_, 0);
+  }
+
+  {
+    sgi::list<Foo> foo_list;
+    foo_list.reverse();
+    EXPECT_TRUE(foo_list.empty());
+
+    foo_list.push_back(Foo(101));
+    foo_list.reverse();
+    EXPECT_EQ(foo_list.front().value_, 101);
+    EXPECT_EQ(foo_list.size(), 1);
+  }
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
